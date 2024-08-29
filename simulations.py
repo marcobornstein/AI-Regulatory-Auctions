@@ -12,8 +12,8 @@ def regauc_sim(lambda_max, beta=False):
     # agent_indices = np.arange(num_agents)
     # np.random.shuffle(agent_indices)
 
-    v_i_w = agent_total_value * agent_total_lambda
-    sq_v = np.square(v_i_w)
+    v_i_p = agent_total_value * agent_total_lambda
+    sq_v = np.square(v_i_p)
     v_i_d = agent_total_value * (1 - agent_total_lambda)
 
     epsilons = np.linspace(0.01, 1, 99, endpoint=False)
@@ -23,24 +23,29 @@ def regauc_sim(lambda_max, beta=False):
     st_average_bids = np.empty_like(epsilons)
 
     i = 0
-    for epsilon in tqdm(epsilons):
+    for p_epsilon in tqdm(epsilons):
         # reg auc participation rate
         if beta:
-            ra_bids = np.minimum(epsilon + sq_v*(3 - 8*v_i_w + 6*sq_v), 1)
-            ra_participation_utility = v_i_d + 2*sq_v*(3 - 6*v_i_w + 4*sq_v) - ra_bids
+            ra_bids = np.minimum(p_epsilon + sq_v*(3 - 8*v_i_p + 6*sq_v), 1)
+            ra_participation_utility = v_i_d + 2*sq_v*(3 - 6*v_i_p + 4*sq_v) - ra_bids
         else:
-            ra_bids = np.minimum(epsilon + sq_v*(1/2 - np.log(2*v_i_w)), 1)
-            ra_participation_utility = v_i_d + 2*sq_v*(1 - np.log(2*v_i_w)) - ra_bids
+            Fv = (p_epsilon + 2 * v_i_p * (np.log(2 * v_i_p) - 1)) / (p_epsilon - 1)
+            int_Fv = v_i_p * (2 * p_epsilon + v_i_p * (2 * np.log(2 * v_i_p) - 3)) / (2 * (p_epsilon - 1))
+            # Fv = np.maximum(0, (p_epsilon + 2 * v_i_p * (np.log(2 * v_i_p) - 1)) / (p_epsilon - 1))
+            # int_Fv = np.maximum(0, v_i_p * (2 * p_epsilon + v_i_p * (2 * np.log(2 * v_i_p) - 3)) / (2 * (p_epsilon - 1)))
+            ra_bids = np.minimum(1, p_epsilon + v_i_p * Fv - int_Fv)
+            ra_participation_utility = v_i_d - ra_bids + v_i_p * Fv
+            # print(v_i_p * Fv)
         ra_participate_bool = ra_participation_utility > 0
         ra_num_participating = np.sum(ra_participate_bool)
         ra_rates[i] = 100 * ra_num_participating / num_agents
         ra_avgerage_bids[i] = np.mean(ra_bids[ra_participate_bool])  # eliminate non-participants from computation
 
         # simple threshold participation rate
-        st_participate_bool = v_i_d >= epsilon
+        st_participate_bool = v_i_d >= p_epsilon
         st_num_participating = np.sum(st_participate_bool)
         st_rates[i] = 100 * st_num_participating / num_agents
-        st_bids = st_participate_bool * epsilon
+        st_bids = st_participate_bool * p_epsilon
         st_average_bids[i] = np.mean(st_bids[st_bids > 0])
 
         i += 1
@@ -50,7 +55,7 @@ def regauc_sim(lambda_max, beta=False):
     plt.plot(epsilons, ra_rates, label='RegAuc')
     plt.plot(epsilons, st_rates, label='Reserve Thresholding')
     plt.grid()
-    plt.xlabel('Epsilon Threshold')
+    plt.xlabel('Epsilon Price $p_\epsilon$ Threshold')
     plt.ylabel('Agent Participation Rate (%)')
     plt.legend(loc='best')
     plt.ylim([0, 100])
@@ -63,7 +68,7 @@ def regauc_sim(lambda_max, beta=False):
     plt.plot(epsilons, ra_avgerage_bids, label='RegAuc')
     plt.plot(epsilons, st_average_bids, label='Reserve Thresholding')
     plt.grid()
-    plt.xlabel('Epsilon Threshold')
+    plt.xlabel('Epsilon Price $p_\epsilon$ Threshold')
     plt.ylabel('Average Participating Agent Bid')
     plt.legend(loc='best')
     plt.ylim([0, 1])
@@ -72,7 +77,9 @@ def regauc_sim(lambda_max, beta=False):
     plt.savefig(filename, dpi=500)
     plt.show()
 
+    # print(ra_avgerage_bids/st_average_bids)
+
 
 if __name__ == '__main__':
-    lam = 1/4
-    regauc_sim(lam, beta=True)
+    lam = 1/2
+    regauc_sim(lam, beta=False)
