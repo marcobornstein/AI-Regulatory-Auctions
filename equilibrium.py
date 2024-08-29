@@ -6,7 +6,7 @@ from tqdm import tqdm
 def regauc_equilibrium(lambda_max, beta=False):
 
     num_trials = 1000000
-    p_epsilon = 0.5
+    p_epsilon = 0.75
     diff = np.linspace(0.5, 1.5, 101, endpoint=True)
     i = 0
     pbar = tqdm(total=num_trials)
@@ -34,10 +34,9 @@ def regauc_equilibrium(lambda_max, beta=False):
         if beta:
             bids = np.minimum(1, p_epsilon + sq_v_i_p * (3 - 8 * v_i_p + 6 * sq_v_i_p))
         else:
-            Fv = (p_epsilon + 2*v_i_p*(np.log(2*v_i_p)-1))/(p_epsilon-1)
-            int_Fv = v_i_p*(2*p_epsilon + v_i_p*(2*np.log(2*v_i_p) - 3)) / (2*(p_epsilon - 1))
+            Fv = 2*v_i_p*np.log(1/p_epsilon) / (1-p_epsilon)
+            int_Fv = sq_v_i_p*np.log(1/p_epsilon) / (1-p_epsilon)
             bids = np.minimum(1, p_epsilon + v_i_p*Fv - int_Fv)
-            # bids = np.minimum(1,p_epsilon + sq_v_i_p * (2*np.log(2*v_i_p) - 1) / (2*(p_epsilon - 1)))
         utilities = v_i_d - bids + v_i_p * Fv
 
         # do not count the run if one agent utility is less than participatory
@@ -65,17 +64,12 @@ def regauc_equilibrium(lambda_max, beta=False):
     best_idx = np.argmax(mean_varied_utility)
     x_vals = diff*100 - 100
 
-    print('hey')
-    print(x_vals[best_idx])
-    print(x_vals[best_idx-3:best_idx+3])
-    print(mean_varied_utility[best_idx-3:best_idx+3])
-
     plt.figure()
     plt.plot(x_vals, mean_varied_utility)
     plt.plot(x_vals[best_idx], mean_varied_utility[best_idx], 'r*', markersize=5, label='Maximizer')
     plt.legend(loc='best')
     plt.grid()
-    plt.xlabel('Percentage Change to Theoretically Optimal Bid (%)')
+    plt.xlabel('Percentage Added/Subtracted to Theoretically Optimal Bid (%)')
     plt.ylabel('Average Agent Utility')
     plt.xlim([-50, 50])
 

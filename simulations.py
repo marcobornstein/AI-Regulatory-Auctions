@@ -29,13 +29,10 @@ def regauc_sim(lambda_max, beta=False):
             ra_bids = np.minimum(p_epsilon + sq_v*(3 - 8*v_i_p + 6*sq_v), 1)
             ra_participation_utility = v_i_d + 2*sq_v*(3 - 6*v_i_p + 4*sq_v) - ra_bids
         else:
-            Fv = (p_epsilon + 2 * v_i_p * (np.log(2 * v_i_p) - 1)) / (p_epsilon - 1)
-            int_Fv = v_i_p * (2 * p_epsilon + v_i_p * (2 * np.log(2 * v_i_p) - 3)) / (2 * (p_epsilon - 1))
-            # Fv = np.maximum(0, (p_epsilon + 2 * v_i_p * (np.log(2 * v_i_p) - 1)) / (p_epsilon - 1))
-            # int_Fv = np.maximum(0, v_i_p * (2 * p_epsilon + v_i_p * (2 * np.log(2 * v_i_p) - 3)) / (2 * (p_epsilon - 1)))
+            Fv = 2 * v_i_p * np.log(1 / p_epsilon) / (1 - p_epsilon)
+            int_Fv = sq_v * np.log(1 / p_epsilon) / (1 - p_epsilon)
             ra_bids = np.minimum(1, p_epsilon + v_i_p * Fv - int_Fv)
             ra_participation_utility = v_i_d - ra_bids + v_i_p * Fv
-            # print(v_i_p * Fv)
         ra_participate_bool = ra_participation_utility > 0
         ra_num_participating = np.sum(ra_participate_bool)
         ra_rates[i] = 100 * ra_num_participating / num_agents
