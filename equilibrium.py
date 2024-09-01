@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 def regauc_equilibrium(lambda_max, beta=False):
 
-    num_trials = 1000000
+    num_trials = 100000
     p_epsilon = 0.75
     diff = np.linspace(0.5, 1.5, 101, endpoint=True)
     i = 0
@@ -30,14 +30,18 @@ def regauc_equilibrium(lambda_max, beta=False):
         # get optimal bids & utility
         v_i_p = total_values * lambdas
         v_i_d = total_values * (1 - lambdas)
-        sq_v_i_p = np.square(v_i_p)
+        Fv = np.empty_like(v_i_p)
+        int_Fv = np.empty_like(v_i_p)
         if beta:
-            bids = np.minimum(1, p_epsilon + sq_v_i_p * (3 - 8 * v_i_p + 6 * sq_v_i_p))
+            bids = np.minimum(1, p_epsilon + np.square(v_i_p) * (3 - 8 * v_i_p + 6 * np.square(v_i_p)))
         else:
-            Fv = 2*v_i_p*np.log(1/p_epsilon) / (1-p_epsilon)
-            int_Fv = sq_v_i_p*np.log(1/p_epsilon) / (1-p_epsilon)
-            bids = np.minimum(1, p_epsilon + v_i_p*Fv - int_Fv)
-        utilities = v_i_d - bids + v_i_p * Fv
+            lower_bool = v_i_p <= p_epsilon/2
+            Fv[lower_bool] = 2 * v_i_p[lower_bool] * np.log(p_epsilon) / (p_epsilon-1)
+            Fv[~lower_bool] = (2 * v_i_p[~lower_bool] * (np.log(2*v_i_p[~lower_bool]) - 1) + p_epsilon) / (p_epsilon - 1)
+            int_Fv[lower_bool] = np.square(v_i_p[lower_bool])*np.log(p_epsilon) / (p_epsilon-1)
+            int_Fv[~lower_bool] = (4*np.square(v_i_p[~lower_bool]) * (2*np.log(2*v_i_p[~lower_bool]) - 3) + 8*p_epsilon*v_i_p[~lower_bool] - p_epsilon**2) / (8*(p_epsilon - 1))
+            bids = np.minimum(1, p_epsilon + v_i_p * Fv - int_Fv)
+            utilities = v_i_d - bids + v_i_p * Fv
 
         # do not count the run if one agent utility is less than participatory
         if np.any(utilities <= 0):

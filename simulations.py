@@ -21,6 +21,8 @@ def regauc_sim(lambda_max, beta=False):
     ra_avgerage_bids = np.empty_like(epsilons)
     st_rates = np.empty_like(epsilons)
     st_average_bids = np.empty_like(epsilons)
+    Fv = np.empty_like(v_i_p)
+    int_Fv = np.empty_like(v_i_p)
 
     i = 0
     for p_epsilon in tqdm(epsilons):
@@ -29,8 +31,14 @@ def regauc_sim(lambda_max, beta=False):
             ra_bids = np.minimum(p_epsilon + sq_v*(3 - 8*v_i_p + 6*sq_v), 1)
             ra_participation_utility = v_i_d + 2*sq_v*(3 - 6*v_i_p + 4*sq_v) - ra_bids
         else:
-            Fv = 2 * v_i_p * np.log(1 / p_epsilon) / (1 - p_epsilon)
-            int_Fv = sq_v * np.log(1 / p_epsilon) / (1 - p_epsilon)
+            lower_bool = v_i_p <= p_epsilon / 2
+            Fv[lower_bool] = 2 * v_i_p[lower_bool] * np.log(p_epsilon) / (p_epsilon - 1)
+            Fv[~lower_bool] = (2 * v_i_p[~lower_bool] * (np.log(2 * v_i_p[~lower_bool]) - 1) + p_epsilon) / (
+                        p_epsilon - 1)
+            int_Fv[lower_bool] = np.square(v_i_p[lower_bool]) * np.log(p_epsilon) / (p_epsilon - 1)
+            int_Fv[~lower_bool] = (4 * np.square(v_i_p[~lower_bool]) * (
+                        2 * np.log(2 * v_i_p[~lower_bool]) - 3) + 8 * p_epsilon * v_i_p[
+                                       ~lower_bool] - p_epsilon ** 2) / (8 * (p_epsilon - 1))
             ra_bids = np.minimum(1, p_epsilon + v_i_p * Fv - int_Fv)
             ra_participation_utility = v_i_d - ra_bids + v_i_p * Fv
         ra_participate_bool = ra_participation_utility > 0
