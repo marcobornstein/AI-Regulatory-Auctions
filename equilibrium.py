@@ -71,10 +71,10 @@ def regauc_equilibrium(lambda_max, beta=False):
     plt.figure()
     plt.plot(x_vals, mean_varied_utility)
     plt.plot(x_vals[best_idx], mean_varied_utility[best_idx], 'r*', markersize=5, label='Maximizer')
-    plt.legend(loc='best')
+    plt.legend(loc='best', fontsize="15")
     plt.grid()
-    plt.xlabel('Percentage Added/Subtracted to Theoretically Optimal Bid (%)')
-    plt.ylabel('Average Agent Utility')
+    plt.xlabel('Percent Deviated from Optimal Bid (%)', fontsize="15", fontweight='bold')
+    plt.ylabel('Average Agent Utility', fontsize="15", fontweight='bold')
     plt.xlim([-50, 50])
 
     filename = 'regauc_equilibrium_deviation_pe{}_lam{}_{}.png'.format(p_epsilon, lambda_max, lab)
