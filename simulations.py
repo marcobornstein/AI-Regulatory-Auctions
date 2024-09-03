@@ -6,6 +6,7 @@ from tqdm import tqdm
 def regauc_sim(lambda_max, beta=False):
 
     num_agents = 100000
+    beta_cdf = lambda x: 3 * x ** 2 - 2 * x ** 3
     agent_total_value = np.random.beta(2, 2, size=num_agents) if beta else np.random.uniform(
         0, 1, size=num_agents)
     agent_total_lambda = np.random.uniform(0, lambda_max, size=num_agents)
@@ -23,24 +24,29 @@ def regauc_sim(lambda_max, beta=False):
     st_average_bids = np.empty_like(epsilons)
     Fv = np.empty_like(v_i_p)
     int_Fv = np.empty_like(v_i_p)
-
     i = 0
     for p_epsilon in tqdm(epsilons):
+        lower_bool = v_i_p <= p_epsilon / 2
         # reg auc participation rate
         if beta:
-            ra_bids = np.minimum(p_epsilon + sq_v*(3 - 8*v_i_p + 6*sq_v), 1)
-            ra_participation_utility = v_i_d + 2*sq_v*(3 - 6*v_i_p + 4*sq_v) - ra_bids
+            den = 1 - beta_cdf(p_epsilon)
+            Fv[lower_bool] = 6 * v_i_p[lower_bool] * (p_epsilon**2 - 2*p_epsilon + 1) / den
+            Fv[~lower_bool] = (8 * v_i_p[~lower_bool]**3 - 12*v_i_p[~lower_bool]**2 + 6*v_i_p[~lower_bool] +2*p_epsilon**3 - 3*p_epsilon**2) / den
+            int_Fv[lower_bool] = 3 * v_i_p[lower_bool]**2 * (p_epsilon**2 - 2*p_epsilon + 1) / den
+            int_Fv[~lower_bool] = (2 * v_i_p[~lower_bool]**4 - 4*v_i_p[~lower_bool]**3 + 3*v_i_p[~lower_bool]**2 + v_i_p[~lower_bool]*(2*p_epsilon**3 - 3*p_epsilon**2) +0.5*p_epsilon**3 - (3/8)*p_epsilon**4) / den
+
+            # ra_bids = np.minimum(p_epsilon + sq_v*(3 - 8*v_i_p + 6*sq_v), 1)
+            # ra_participation_utility = v_i_d + 2*sq_v*(3 - 6*v_i_p + 4*sq_v) - ra_bids
         else:
-            lower_bool = v_i_p <= p_epsilon / 2
-            Fv[lower_bool] = 2 * v_i_p[lower_bool] * np.log(p_epsilon) / (p_epsilon - 1)
-            Fv[~lower_bool] = (2 * v_i_p[~lower_bool] * (np.log(2 * v_i_p[~lower_bool]) - 1) + p_epsilon) / (
-                        p_epsilon - 1)
-            int_Fv[lower_bool] = np.square(v_i_p[lower_bool]) * np.log(p_epsilon) / (p_epsilon - 1)
+            den = p_epsilon - 1
+            Fv[lower_bool] = 2 * v_i_p[lower_bool] * np.log(p_epsilon) / den
+            Fv[~lower_bool] = (2 * v_i_p[~lower_bool] * (np.log(2 * v_i_p[~lower_bool]) - 1) + p_epsilon) / den
+            int_Fv[lower_bool] = np.square(v_i_p[lower_bool]) * np.log(p_epsilon) / den
             int_Fv[~lower_bool] = (4 * np.square(v_i_p[~lower_bool]) * (
                         2 * np.log(2 * v_i_p[~lower_bool]) - 3) + 8 * p_epsilon * v_i_p[
-                                       ~lower_bool] - p_epsilon ** 2) / (8 * (p_epsilon - 1))
-            ra_bids = np.minimum(1, p_epsilon + v_i_p * Fv - int_Fv)
-            ra_participation_utility = v_i_d - ra_bids + v_i_p * Fv
+                                       ~lower_bool] - p_epsilon ** 2) / (8 * den)
+        ra_bids = np.minimum(1, p_epsilon + v_i_p * Fv - int_Fv)
+        ra_participation_utility = v_i_d - ra_bids + v_i_p * Fv
         ra_participate_bool = ra_participation_utility > 0
         ra_num_participating = np.sum(ra_participate_bool)
         ra_rates[i] = 100 * ra_num_participating / num_agents
@@ -87,4 +93,4 @@ def regauc_sim(lambda_max, beta=False):
 
 if __name__ == '__main__':
     lam = 1/2
-    regauc_sim(lam, beta=False)
+    regauc_sim(lam, beta=True)
