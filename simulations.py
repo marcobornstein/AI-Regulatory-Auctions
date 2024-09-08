@@ -63,7 +63,7 @@ def regauc_sim(lambda_max, beta=False):
 
     lab = 'beta' if beta else 'uniform'
     plt.figure(1)
-    plt.plot(epsilons, ra_rates, label='RegAuc')
+    plt.plot(epsilons, ra_rates, label='SIRA')
     plt.plot(epsilons, st_rates, label='Reserve Thresholding')
     plt.grid()
     plt.xlabel('Epsilon Price $p_\epsilon$ Threshold', fontsize="15", fontweight='bold')
@@ -76,7 +76,7 @@ def regauc_sim(lambda_max, beta=False):
     plt.show()
 
     plt.figure(2)
-    plt.plot(epsilons, ra_avgerage_bids, label='RegAuc')
+    plt.plot(epsilons, ra_avgerage_bids, label='SIRA')
     plt.plot(epsilons, st_average_bids, label='Reserve Thresholding')
     plt.grid()
     plt.xlabel('Epsilon Price $p_\epsilon$ Threshold', fontsize="15", fontweight='bold')
@@ -93,4 +93,4 @@ def regauc_sim(lambda_max, beta=False):
 
 if __name__ == '__main__':
     lam = 1/2
-    regauc_sim(lam, beta=True)
+    regauc_sim(lam, beta=False)
