@@ -21,7 +21,7 @@ parser.add_argument('--num-labels', type=int, default=2)
 parser.add_argument('--num-groups', type=int, default=2)
 
 parser.add_argument('--num-workers', type=int, default=1)
-parser.add_argument('--epoch', type=int, default=5)
+parser.add_argument('--epoch', type=int, default=20)
 parser.add_argument('--batch-size', type=int, default=100)
 parser.add_argument('--test-batch-size', type=int, default=256)
 
@@ -44,7 +44,7 @@ parser.add_argument('--root', type=str, default='/cmlscratch/zche/RegAuc/fairnes
 parser.add_argument('--seed', type=int, default=46)
 
 
-parser.add_argument('--save-name', type=str, default='test')
+# parser.add_argument('--save-name', type=str, default='50-50')
 parser.add_argument('--save-csv-path', type=str, default='/cmlscratch/zche/RegAuc/fairness-simulation/results')
 parser.add_argument('--save-path', type=str, default='checkpoint')
 parser.add_argument('--save-model', action='store_true', default=False)
@@ -92,6 +92,9 @@ def main(args):
 
     print("Num of majority group", args.num_maj)
     print("Percentage of minority group", args.per_min)
+
+
+    args.save_name = f"{args.num_maj}-{args.per_min}"
 
     # load data
     mixture_df = gen_data_mixture(args.num_maj, args.per_min, os.path.join(args.root, args.image_list_train),args.seed)
