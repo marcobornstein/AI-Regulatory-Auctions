@@ -27,7 +27,7 @@ parser.add_argument('--test-batch-size', type=int, default=256)
 
 
 parser.add_argument('--model', choices=['vgg16', 'resnet18', "mlp", 'cnn'], default='vgg16')
-parser.add_argument('--lr', type=float, default=1e-4)
+parser.add_argument('--lr', type=float, default=0.001)
 parser.add_argument('--weight-decay', type=float, default=5e-4)
 parser.add_argument('--step-lr', type=int, default=100)
 parser.add_argument('--step-lr-gamma', type=float, default=0.1)
@@ -44,7 +44,6 @@ parser.add_argument('--root', type=str, default='/cmlscratch/zche/RegAuc/fairnes
 parser.add_argument('--seed', type=int, default=46)
 
 
-# parser.add_argument('--save-name', type=str, default='50-50')
 parser.add_argument('--save-csv-path', type=str, default='/cmlscratch/zche/RegAuc/fairness-simulation/results')
 parser.add_argument('--save-path', type=str, default='checkpoint')
 parser.add_argument('--save-model', action='store_true', default=False)

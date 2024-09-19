@@ -602,35 +602,6 @@ def load_data(args):
     return s_train_dataset, s_test_dataset, t_train_dataset, t_test_dataset
 
 
-def load_model(args):
-    if args.dataset == 'utk-fairface':
-        if args.model == 'vgg16':
-            features = models.vgg16(pretrained=False).features
-            model = Face(features, args.num_labels)
-        elif args.model == 'resnet18':
-            model_ft = models.resnet18(pretrained=False)
-            features = torch.nn.Sequential(*list(model_ft.children())[:-1])
-            model = Face_Resnet(features, args.num_labels)
-        else:
-            raise Exception(f'Unknown model type {args.model}')
-    elif args.dataset == 'newadult':
-        if args.model == 'mlp':
-            model = Adult_MLP(args.num_labels)
-        else:
-            raise Exception(f'Only support model type: mlp')
-    elif args.dataset == 'shapes':
-        if args.model == 'mlp':
-            model = MLP(num_classes=args.num_labels)
-        else:
-            raise Exception(f'Only support model type: mlp')
-    elif args.dataset == 'cifar10':
-        backbone = models.resnet18(pretrained=args.pretrain)
-        backbone.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
-        backbone.maxpool = nn.Identity()
-        features = torch.nn.Sequential(*list(backbone.children())[:-1])
-        model = Face_Resnet(features, args.num_labels)
-    return model
-
 
 def fill_args(args):
     if args.dataset == 'shapes':
