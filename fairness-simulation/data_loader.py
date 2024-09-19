@@ -7,22 +7,22 @@ import numpy as np
 import shutil
 import random
 from metrics import *
-from folktables import ACSDataSource, ACSEmployment, ACSIncome
+# from folktables import ACSDataSource, ACSEmployment, ACSIncome
 import pandas as pd
-from randaugment import RandAugment_face as RandAugment
+# from randaugment import RandAugment_face as RandAugment
 import copy
 
 
-class TransformTwice:
-    def __init__(self, transform):
-        self.transform = transform
-        self.transform_strong = copy.deepcopy(transform)
-        self.transform_strong.transforms.insert(0, RandAugment(3, 5))
+# class TransformTwice:
+#     def __init__(self, transform):
+#         self.transform = transform
+#         self.transform_strong = copy.deepcopy(transform)
+#         self.transform_strong.transforms.insert(0, RandAugment(3, 5))
 
-    def __call__(self, inp):
-        out1 = self.transform(inp)
-        out2 = self.transform_strong(inp)
-        return out1, out2
+#     def __call__(self, inp):
+#         out1 = self.transform(inp)
+#         out2 = self.transform_strong(inp)
+#         return out1, out2
 
 
 class UTKFaceDataset(Dataset):
@@ -78,7 +78,8 @@ class FairFaceDataset(Dataset):
         self.root = root
         self.transform = transform
         self.transform_strong = transform_strong
-        self.images_df = pd.read_csv(images_file)
+        self.images_df = images_file
+        #self.images_df = pd.read_csv(images_file)
 
     def __len__(self):
         return len(self.images_df)
@@ -111,150 +112,150 @@ class FairFaceDataset(Dataset):
         return {'image': image_transformed, 'label': label}
 
 
-class NewAdultDataset(Dataset):
+# class NewAdultDataset(Dataset):
 
-    def __init__(self, root, states, exclude_states, year, binary_split="non-white",
-                 task="income", phase='train',
-                 **kwargs):
-        self.root = root
-        self.states = states
-        self.all_states = ['AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
-                           'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD',
-                           'ME', 'MI', 'MN', 'MO', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH',
-                           'NJ', 'NM', 'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-                           'SD', 'TN', 'TX', 'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
-        if exclude_states:
-            self.states = list(set(self.all_states) - set(self.states))
+#     def __init__(self, root, states, exclude_states, year, binary_split="non-white",
+#                  task="income", phase='train',
+#                  **kwargs):
+#         self.root = root
+#         self.states = states
+#         self.all_states = ['AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+#                            'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD',
+#                            'ME', 'MI', 'MN', 'MO', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH',
+#                            'NJ', 'NM', 'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+#                            'SD', 'TN', 'TX', 'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
+#         if exclude_states:
+#             self.states = list(set(self.all_states) - set(self.states))
 
-        self.year = year
-        self.binary_split = binary_split
-        self.task = task
-        self.phase = phase
+#         self.year = year
+#         self.binary_split = binary_split
+#         self.task = task
+#         self.phase = phase
 
-        self.ACSIncome_features = [
-            'AGEP',
-            'COW',
-            'SCHL',
-            'MAR',
-            'OCCP',
-            'POBP',
-            'RELP',
-            'WKHP',
-            'SEX',
-            'RAC1P',
-        ]
-        self.fns = {
-            'AGEP': lambda x: self.onehot(np.digitize(x, self.buckets['age']), len(self.buckets['age']) + 1),
-            'COW': lambda x: self.onehot(x.astype(int) - 1, 9),
-            # #'fnlwgt': lambda x: continuous(x),
-            'SCHL': lambda x: self.onehot(x.astype(int) - 1, 24),
-            # #'education-num': lambda x: continuous(x),
-            'MAR': lambda x: self.onehot(x.astype(int) - 1, 5),
-            'OCCP': lambda x: self.onehot(np.digitize(x, self.buckets['occupation']),
-                                          len(self.buckets['occupation']) + 1),
-            # 'OCCP': lambda x: onehot(x, options['occupation']),
-            'RELP': lambda x: self.onehot(x.astype(int), 18),
-            'RAC1P': lambda x: self.onehot(x.astype(int) - 1, 9),
-            'SEX': lambda x: self.onehot(x.astype(int) - 1, 2),
-            # #'capital-gain': lambda x: continuous(x),
-            # #'capital-loss': lambda x: continuous(x),
-            'WKHP': lambda x: self.onehot(np.digitize(x, self.buckets['hour']), len(self.buckets['hour']) + 1),
-            'POBP': lambda x: self.onehot((x // 100).astype(int), 6),
-            # #'income': lambda x: onehot(x.strip('.'), options['income']),
-        }
+#         self.ACSIncome_features = [
+#             'AGEP',
+#             'COW',
+#             'SCHL',
+#             'MAR',
+#             'OCCP',
+#             'POBP',
+#             'RELP',
+#             'WKHP',
+#             'SEX',
+#             'RAC1P',
+#         ]
+#         self.fns = {
+#             'AGEP': lambda x: self.onehot(np.digitize(x, self.buckets['age']), len(self.buckets['age']) + 1),
+#             'COW': lambda x: self.onehot(x.astype(int) - 1, 9),
+#             # #'fnlwgt': lambda x: continuous(x),
+#             'SCHL': lambda x: self.onehot(x.astype(int) - 1, 24),
+#             # #'education-num': lambda x: continuous(x),
+#             'MAR': lambda x: self.onehot(x.astype(int) - 1, 5),
+#             'OCCP': lambda x: self.onehot(np.digitize(x, self.buckets['occupation']),
+#                                           len(self.buckets['occupation']) + 1),
+#             # 'OCCP': lambda x: onehot(x, options['occupation']),
+#             'RELP': lambda x: self.onehot(x.astype(int), 18),
+#             'RAC1P': lambda x: self.onehot(x.astype(int) - 1, 9),
+#             'SEX': lambda x: self.onehot(x.astype(int) - 1, 2),
+#             # #'capital-gain': lambda x: continuous(x),
+#             # #'capital-loss': lambda x: continuous(x),
+#             'WKHP': lambda x: self.onehot(np.digitize(x, self.buckets['hour']), len(self.buckets['hour']) + 1),
+#             'POBP': lambda x: self.onehot((x // 100).astype(int), 6),
+#             # #'income': lambda x: onehot(x.strip('.'), options['income']),
+#         }
 
-        self.EPS = 1e-8
-        self.buckets = {'age': [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75],
-                        'hour': [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90],
-                        'occupation': [441, 961, 1241, 1561, 1981, 2061, 2181, 2556, 2921, 3551, 3656, 3961, 4151, 4256,
-                                       4656, 4966, 5941, 6131, 6951, 7641, 8991, 9431, 9761, 9831]}
-        self.load()
+#         self.EPS = 1e-8
+#         self.buckets = {'age': [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75],
+#                         'hour': [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90],
+#                         'occupation': [441, 961, 1241, 1561, 1981, 2061, 2181, 2556, 2921, 3551, 3656, 3961, 4151, 4256,
+#                                        4656, 4966, 5941, 6131, 6951, 7641, 8991, 9431, 9761, 9831]}
+#         self.load()
 
-    def load(self):
-        assert self.task in ["employment", "income"]
-        data_source = ACSDataSource(survey_year=self.year, horizon='1-Year', survey='person', root_dir=self.root)
-        acs_data = data_source.get_data(states=self.states, download=True)
+#     def load(self):
+#         assert self.task in ["employment", "income"]
+#         data_source = ACSDataSource(survey_year=self.year, horizon='1-Year', survey='person', root_dir=self.root)
+#         acs_data = data_source.get_data(states=self.states, download=True)
 
-        if self.task == "employment":
-            features, label, group = ACSEmployment.df_to_numpy(acs_data)
-        elif self.task == "income":
-            features, label, group = ACSIncome.df_to_numpy(acs_data)
-        if self.binary_split == "non-white":
-            group[group != 1] = 0
-            group = 1 - group
-        idx_train = int(len(features) * 0.7)
+#         if self.task == "employment":
+#             features, label, group = ACSEmployment.df_to_numpy(acs_data)
+#         elif self.task == "income":
+#             features, label, group = ACSIncome.df_to_numpy(acs_data)
+#         if self.binary_split == "non-white":
+#             group[group != 1] = 0
+#             group = 1 - group
+#         idx_train = int(len(features) * 0.7)
 
-        if self.phase == "train":
-            self.x = features[:idx_train]
-            self.y = label[:idx_train]
-            self.a = group[:idx_train]
+#         if self.phase == "train":
+#             self.x = features[:idx_train]
+#             self.y = label[:idx_train]
+#             self.a = group[:idx_train]
 
-        elif self.phase == "test":
-            self.x = features[idx_train:]
-            self.y = label[idx_train:]
-            self.a = group[idx_train:]
+#         elif self.phase == "test":
+#             self.x = features[idx_train:]
+#             self.y = label[idx_train:]
+#             self.a = group[idx_train:]
 
-    def preprocess(self, features):
-        for i in range(len(features)):
-            if i == 0:
-                one_hot_features = self.fns[self.ACSIncome_features[i]](features[i])
-            else:
-                a = self.fns[self.ACSIncome_features[i]](features[i])
-                one_hot_features = np.concatenate((one_hot_features, a))
+#     def preprocess(self, features):
+#         for i in range(len(features)):
+#             if i == 0:
+#                 one_hot_features = self.fns[self.ACSIncome_features[i]](features[i])
+#             else:
+#                 a = self.fns[self.ACSIncome_features[i]](features[i])
+#                 one_hot_features = np.concatenate((one_hot_features, a))
 
-        return one_hot_features
+#         return one_hot_features
 
-    def onehot(self, a, num_classes):
-        return np.squeeze(np.eye(num_classes)[a])
+#     def onehot(self, a, num_classes):
+#         return np.squeeze(np.eye(num_classes)[a])
 
-    def whiten(self, X, mn, std):
-        mntile = np.tile(mn, (X.shape[0], 1))
-        stdtile = np.maximum(np.tile(std, (X.shape[0], 1)), self.EPS)
-        X = X - mntile
-        X = np.divide(X, stdtile)
-        return X
+#     def whiten(self, X, mn, std):
+#         mntile = np.tile(mn, (X.shape[0], 1))
+#         stdtile = np.maximum(np.tile(std, (X.shape[0], 1)), self.EPS)
+#         X = X - mntile
+#         X = np.divide(X, stdtile)
+#         return X
 
-    def transformation(self, features):
-        # random corruption (half of the features)
-        POBP_list = [0, 100, 200, 300, 400, 500]
-        self.feature_corruption = {
-            'AGEP': lambda x: max(min(99, x + np.random.randint(-5, 6)), 16),
-            # 'COW': lambda x: np.random.randint(1,9),
-            'COW': lambda x: x,
-            # #'fnlwgt': lambda x: continuous(x),
-            # 'SCHL': lambda x: np.random.randint(1,24),
-            'SCHL': lambda x: max(min(24, x + np.random.randint(-2, 3)), 0),
-            # #'education-num': lambda x: continuous(x),
-            'MAR': lambda x: np.random.randint(1, 6),
-            'OCCP': lambda x: x,
-            # 'OCCP': lambda x: onehot(x, options['occupation']),
-            'RELP': lambda x: np.random.randint(0, 18),
-            'RAC1P': lambda x: np.random.randint(1, 10),
-            'SEX': lambda x: x,
-            # #'capital-gain': lambda x: continuous(x),
-            # #'capital-loss': lambda x: continuous(x),
-            'WKHP': lambda x: max(min(99, x + np.random.randint(-5, 6)), 1),
-            'POBP': lambda x: POBP_list[np.random.randint(0, 6)],
-            # #'income': lambda x: onehot(x.strip('.'), options['income']),
-        }
+#     def transformation(self, features):
+#         # random corruption (half of the features)
+#         POBP_list = [0, 100, 200, 300, 400, 500]
+#         self.feature_corruption = {
+#             'AGEP': lambda x: max(min(99, x + np.random.randint(-5, 6)), 16),
+#             # 'COW': lambda x: np.random.randint(1,9),
+#             'COW': lambda x: x,
+#             # #'fnlwgt': lambda x: continuous(x),
+#             # 'SCHL': lambda x: np.random.randint(1,24),
+#             'SCHL': lambda x: max(min(24, x + np.random.randint(-2, 3)), 0),
+#             # #'education-num': lambda x: continuous(x),
+#             'MAR': lambda x: np.random.randint(1, 6),
+#             'OCCP': lambda x: x,
+#             # 'OCCP': lambda x: onehot(x, options['occupation']),
+#             'RELP': lambda x: np.random.randint(0, 18),
+#             'RAC1P': lambda x: np.random.randint(1, 10),
+#             'SEX': lambda x: x,
+#             # #'capital-gain': lambda x: continuous(x),
+#             # #'capital-loss': lambda x: continuous(x),
+#             'WKHP': lambda x: max(min(99, x + np.random.randint(-5, 6)), 1),
+#             'POBP': lambda x: POBP_list[np.random.randint(0, 6)],
+#             # #'income': lambda x: onehot(x.strip('.'), options['income']),
+#         }
 
-        feature_list = [*range(len(self.ACSIncome_features))]
-        corrupt_idx = random.sample(feature_list, len(feature_list) // 2)
-        for i in corrupt_idx:
-            features[i] = self.feature_corruption[self.ACSIncome_features[i]](features[i])
+#         feature_list = [*range(len(self.ACSIncome_features))]
+#         corrupt_idx = random.sample(feature_list, len(feature_list) // 2)
+#         for i in corrupt_idx:
+#             features[i] = self.feature_corruption[self.ACSIncome_features[i]](features[i])
 
-        return features
+#         return features
 
-    def __len__(self):
-        return len(self.y)
+#     def __len__(self):
+#         return len(self.y)
 
-    def __getitem__(self, index):
-        data, target, group = self.x[index], self.y[index], self.a[index]
-        data_trans = copy.deepcopy(data)
-        data_trans = self.transformation(data_trans)
-        data = self.preprocess(data), self.preprocess(data_trans)
+#     def __getitem__(self, index):
+#         data, target, group = self.x[index], self.y[index], self.a[index]
+#         data_trans = copy.deepcopy(data)
+#         data_trans = self.transformation(data_trans)
+#         data = self.preprocess(data), self.preprocess(data_trans)
 
-        return data, target, group
+#         return data, target, group
 
 
 class ShapesDataset(Dataset):
