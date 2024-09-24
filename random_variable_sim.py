@@ -5,7 +5,7 @@ if __name__ == '__main__':
 
     beta = False
     num_agents = int(5e7) if not beta else int(1e8)
-    p_epsilon = 0.5
+    p_epsilon = 0.25
     if beta:
         V = np.random.beta(2, 2, size=num_agents)
         V = V[V >= p_epsilon]
@@ -39,16 +39,16 @@ if __name__ == '__main__':
     # plotting PDF and CDF
     lab = 'beta' if beta else 'uniform'
     max_pdf = np.max(y_pdf1)
-    pdf1_label = '$f_{v_i^p}(v) = \\frac{6(p_\epsilon^2 - 2p_\epsilon + 1)}{1 - F_\\beta(p_\epsilon)}$' if beta else '$f_{v_i^p}(v) = \\frac{2\ln(p_\epsilon)}{p_\epsilon - 1}$'
-    pdf2_label = '$f_{v_i^p}(v) = \\frac{6(4v^2 - 4v + 1)}{1 - F_\\beta(p_\epsilon)}$' if beta else '$f_{v_i^p}(v) = \\frac{2\ln(2v)}{p_\epsilon - 1}$'
-    cdf1_label = '$F_{v_i^p}(v) = \\frac{6v(p_\epsilon^2 - 2p_\epsilon + 1)}{1 - F_\\beta(p_\epsilon)}$' if beta else '$F_{v_i^p}(v) = \\frac{2v\ln(p_\epsilon)}{p_\epsilon - 1}$'
-    cdf2_label = '$F_{v_i^p}(v) = \\frac{2v(4v^2 - 6v + 3) + p_\epsilon^2(2p_\epsilon - 3)}{1 - F_\\beta(p_\epsilon)}$' if beta else '$F_{v_i^p}(v) = \\frac{2v(\ln(2v)-1) + p_\epsilon}{p_\epsilon - 1}$'
+    pdf1_label = '$f_{v}(v_i^p) = \\frac{6(p_\epsilon^2 - 2p_\epsilon + 1)}{1 - F_\\beta(p_\epsilon)}$' if beta else '$f_{v}(v_i^p) = \\frac{2\ln(p_\epsilon)}{p_\epsilon - 1}$'
+    pdf2_label = '$f_{v}(v_i^p) = \\frac{6(4(v_i^p)^2 - 4v_i^p + 1)}{1 - F_\\beta(p_\epsilon)}$' if beta else '$f_{v}(v_i^p) = \\frac{2\ln(2v_i^p)}{p_\epsilon - 1}$'
+    cdf1_label = '$F_{v}(v_i^p) = \\frac{6v_i^p(p_\epsilon^2 - 2p_\epsilon + 1)}{1 - F_\\beta(p_\epsilon)}$' if beta else '$F_{v}(v_i^p) = \\frac{2v_i^p\ln(p_\epsilon)}{p_\epsilon - 1}$'
+    cdf2_label = '$F_{v}(v_i^p) = \\frac{2v_i^p(4(v_i^p)^2 - 6v_i^p + 3) + p_\epsilon^2(2p_\epsilon - 3)}{1 - F_\\beta(p_\epsilon)}$' if beta else '$F_{v}(v_i^p) = \\frac{2v_i^p(\ln(2v_i^p)-1) + p_\epsilon}{p_\epsilon - 1}$'
 
     plt.figure(1)
     plt.plot(bins_count[1:], pdf, color="red", label="Simulated PDF")
     plt.plot(x_1, y_pdf1, color="blue", label=pdf1_label)
     plt.plot(x_2, y_pdf2, '--', color="blue", label=pdf2_label)
-    plt.xlabel('Random Value Product $v$', fontsize="14", fontweight='bold')
+    plt.xlabel('Premium Compensation Value $v_i^p$', fontsize="14", fontweight='bold')
     plt.ylabel('Probability Density', fontsize="14", fontweight='bold')
     plt.xlim([0, 0.5])
     plt.ylim([0, max_pdf*1.05])
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     plt.plot(bins_count[1:], cdf, label="Simulated CDF", color='red')
     plt.plot(x_1, y_cdf1, '--', color="blue", label=cdf1_label)
     plt.plot(x_2, y_cdf2, ':', color="blue", label=cdf2_label)
-    plt.xlabel('Random Value Product $v$', fontsize="15", fontweight='bold')
+    plt.xlabel('Premium Compensation Value $v_i^p$', fontsize="15", fontweight='bold')
     plt.ylabel('Probability', fontsize="15", fontweight='bold')
     plt.xlim([0, 0.5])
     plt.ylim([0, 1.025])

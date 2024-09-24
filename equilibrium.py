@@ -78,8 +78,9 @@ def regauc_equilibrium(lambda_max, beta=False):
     x_vals = diff*100 - 100
 
     plt.figure()
+    plt.axvline(x=0, ymin=0, ymax=1, color='r', linestyle=':', label='Optimal Bid')
     plt.plot(x_vals, mean_varied_utility)
-    plt.plot(x_vals[best_idx], mean_varied_utility[best_idx], 'r*', markersize=5, label='Maximizer')
+    # plt.plot(x_vals[best_idx], mean_varied_utility[best_idx], 'r*', markersize=5, label='Maximizer')
     plt.legend(loc='best', fontsize="15")
     plt.grid()
     plt.xlabel('Percent Deviated from Optimal Bid (%)', fontsize="15", fontweight='bold')
