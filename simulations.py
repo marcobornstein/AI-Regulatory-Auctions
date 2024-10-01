@@ -10,11 +10,8 @@ def regauc_sim(lambda_max, beta=False):
     agent_total_value = np.random.beta(2, 2, size=num_agents) if beta else np.random.uniform(
         0, 1, size=num_agents)
     agent_total_lambda = np.random.uniform(0, lambda_max, size=num_agents)
-    # agent_indices = np.arange(num_agents)
-    # np.random.shuffle(agent_indices)
 
     v_i_p = agent_total_value * agent_total_lambda
-    sq_v = np.square(v_i_p)
     v_i_d = agent_total_value * (1 - agent_total_lambda)
 
     epsilons = np.linspace(0.01, 1, 99, endpoint=False)
@@ -34,9 +31,6 @@ def regauc_sim(lambda_max, beta=False):
             Fv[~lower_bool] = (8 * v_i_p[~lower_bool]**3 - 12*v_i_p[~lower_bool]**2 + 6*v_i_p[~lower_bool] +2*p_epsilon**3 - 3*p_epsilon**2) / den
             int_Fv[lower_bool] = 3 * v_i_p[lower_bool]**2 * (p_epsilon**2 - 2*p_epsilon + 1) / den
             int_Fv[~lower_bool] = (2 * v_i_p[~lower_bool]**4 - 4*v_i_p[~lower_bool]**3 + 3*v_i_p[~lower_bool]**2 + v_i_p[~lower_bool]*(2*p_epsilon**3 - 3*p_epsilon**2) +0.5*p_epsilon**3 - (3/8)*p_epsilon**4) / den
-
-            # ra_bids = np.minimum(p_epsilon + sq_v*(3 - 8*v_i_p + 6*sq_v), 1)
-            # ra_participation_utility = v_i_d + 2*sq_v*(3 - 6*v_i_p + 4*sq_v) - ra_bids
         else:
             den = p_epsilon - 1
             Fv[lower_bool] = 2 * v_i_p[lower_bool] * np.log(p_epsilon) / den

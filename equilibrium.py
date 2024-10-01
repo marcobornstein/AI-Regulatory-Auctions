@@ -19,15 +19,6 @@ def regauc_equilibrium(lambda_max, beta=False):
         total_values = np.random.beta(2, 2, size=2) if beta else np.random.uniform(0, 1, size=2)
         lambdas = np.random.uniform(0, lambda_max, size=2)
 
-        """
-        # normal all-pay auction
-        bids = 0.5*np.square(total_values)
-        varied_bid = bids[0] * diff
-        varied_utilities[i, :] = - varied_bid
-        winner_bool = varied_bid > bids[1]
-        varied_utilities[i, winner_bool] += total_values[0]
-        """
-
         # get optimal bids & utility
         v_i_p = total_values * lambdas
         v_i_d = total_values * (1 - lambdas)
@@ -74,13 +65,11 @@ def regauc_equilibrium(lambda_max, beta=False):
 
     lab = 'beta' if beta else 'uniform'
     mean_varied_utility = np.mean(varied_utilities, axis=0)
-    best_idx = np.argmax(mean_varied_utility)
     x_vals = diff*100 - 100
 
     plt.figure()
     plt.axvline(x=0, ymin=0, ymax=1, color='r', linestyle=':', label='Optimal Bid')
     plt.plot(x_vals, mean_varied_utility)
-    # plt.plot(x_vals[best_idx], mean_varied_utility[best_idx], 'r*', markersize=5, label='Maximizer')
     plt.legend(loc='best', fontsize="15")
     plt.grid()
     plt.xlabel('Percent Deviated from Optimal Bid (%)', fontsize="15", fontweight='bold')
