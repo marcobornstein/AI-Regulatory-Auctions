@@ -377,20 +377,6 @@ def eval_loop(args, epoch, dataloader, model,test=False):
         err_odd, max_id_odd, min_id_odd = eql_odd(group_acc)
 
         # log
-        print('Val Epoch:{0} | Loss {loss:.4f} | Acc {acc:.2f} '
-              '[{acc_a0_y0:.2f} {acc_a0_y1:.2f} {acc_a1_y0:.2f} {acc_a1_y1:.2f}]|'
-              'acc_var {acc_var:.2f}|'
-              'acc_dis {acc_dis:.2f}, ({max_id_acc}, {min_id_acc})|'
-              'err_op_0 {err_op0:.2f}, ({max_id_op0}, {min_id_op0})|'
-              'err_op_1 {err_op1:.2f}, ({max_id_op1}, {min_id_op1})|'
-              'err_odd {err_odd:.2f}, ({max_id_odd}, {min_id_odd})|'.format(
-             epoch, loss=losses.avg, acc=accs.avg, acc_var=acc_var,
-            err_op0=err_op0, max_id_op0=max_id_op0, min_id_op0=min_id_op0,
-            err_op1=err_op1, max_id_op1=max_id_op1, min_id_op1=min_id_op1,
-            err_odd=err_odd, max_id_odd=max_id_odd, min_id_odd=min_id_odd,
-            acc_dis=acc_dis, max_id_acc=max_id_acc, min_id_acc=min_id_acc,
-            acc_a0_y0=group_acc[0][0], acc_a0_y1=group_acc[0][1], acc_a1_y0=group_acc[1][0],
-            acc_a1_y1=group_acc[1][1]))
 
         # save result
         if test:
@@ -400,6 +386,20 @@ def eval_loop(args, epoch, dataloader, model,test=False):
                     err_op0.item(),
                     err_op1.item(), err_odd.item()]
         else:
+            print('Val Epoch:{0} | Loss {loss:.4f} | Acc {acc:.2f} '
+                '[{acc_a0_y0:.2f} {acc_a0_y1:.2f} {acc_a1_y0:.2f} {acc_a1_y1:.2f}]|'
+                'acc_var {acc_var:.2f}|'
+                'acc_dis {acc_dis:.2f}, ({max_id_acc}, {min_id_acc})|'
+                'err_op_0 {err_op0:.2f}, ({max_id_op0}, {min_id_op0})|'
+                'err_op_1 {err_op1:.2f}, ({max_id_op1}, {min_id_op1})|'
+                'err_odd {err_odd:.2f}, ({max_id_odd}, {min_id_odd})|'.format(
+                epoch, loss=losses.avg, acc=accs.avg, acc_var=acc_var,
+                err_op0=err_op0, max_id_op0=max_id_op0, min_id_op0=min_id_op0,
+                err_op1=err_op1, max_id_op1=max_id_op1, min_id_op1=min_id_op1,
+                err_odd=err_odd, max_id_odd=max_id_odd, min_id_odd=min_id_odd,
+                acc_dis=acc_dis, max_id_acc=max_id_acc, min_id_acc=min_id_acc,
+                acc_a0_y0=group_acc[0][0], acc_a0_y1=group_acc[0][1], acc_a1_y0=group_acc[1][0],
+                acc_a1_y1=group_acc[1][1]))
             result = [args.save_name, f"Val {epoch}", accs.avg, group_acc[0][0].item(),
                     group_acc[0][1].item(),
                     group_acc[1][0].item(), group_acc[1][1].item(), acc_var.item(), acc_dis.item(),
