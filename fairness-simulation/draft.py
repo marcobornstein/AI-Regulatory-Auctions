@@ -190,13 +190,34 @@ def train_model(args, model, loaders):
                                                                                              model)
             results.append(t_result)
 
-        if scheduler: scheduler.step()
-    
-    t_test_loss, t_test_prec, t_test_unfair_var, t_test_unfair_odd, t_result = eval_loop(args,
+
+            if t_val_prec - t_val_unfair_odd >= best_t_acc_fair_odd:
+                best_t_acc_fair_odd = t_val_prec - t_val_unfair_odd
+                best_t_acc_odd = t_val_prec
+                best_t_unfair_odd = t_val_unfair_odd
+                best_epoch_odd = epoch
+                # if args.save_model:
+                #     sd_info = {
+                #         'model': model.state_dict(),
+                #         'optimizer': optimizer.state_dict(),
+                #         'scheduler': (scheduler and scheduler.state_dict()),
+                #         'epoch': epoch
+                #     }
+                #     save_checkpoint(args, "best_odd", sd_info)
+                t_test_loss, t_test_prec, t_test_unfair_var, t_test_unfair_odd, t_test_result = eval_loop(args,
                                                                                              epoch,
                                                                                              test_dataloader,
                                                                                              model,test=True)
-    results.append(t_result)
+
+        if scheduler: scheduler.step()
+
+
+    
+    # t_test_loss, t_test_prec, t_test_unfair_var, t_test_unfair_odd, t_result = eval_loop(args,
+    #                                                                                          best_epoch_odd,
+    #                                                                                          test_dataloader,
+    #                                                                                          model,test=True)
+    results.append(t_test_result)
 
 
     # save results to csv
@@ -210,10 +231,10 @@ def train_model(args, model, loaders):
         write.writerows(results)
 
     # print('Done!')
-    # print('Best (odd) epoch: ', best_epoch_odd)
-    # print('Best (odd) target test acc: {acc:.4f}'.format(acc=best_t_acc_odd))
-    # print('Best (odd) target test unfairness: {acc:.4f}'.format(acc=best_t_unfair_odd))
-    # print('Best (var) epoch: ', best_epoch_var)
+    print('Best (odd) epoch: ', best_epoch_odd)
+    print('Best (odd) target test acc: {acc:.4f}'.format(acc=best_t_acc_odd))
+    print('Best (odd) target test unfairness: {acc:.4f}'.format(acc=best_t_unfair_odd))
+    print('Best (var) epoch: ', best_epoch_var)
     # print('Best (var) target test acc: {acc:.4f}'.format(acc=best_t_acc_var))
     # print('Best (var) target test unfairness: {acc:.4f}'.format(acc=best_t_unfair_var))
 
