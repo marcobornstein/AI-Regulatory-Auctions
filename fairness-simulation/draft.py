@@ -21,7 +21,7 @@ parser.add_argument('--num-labels', type=int, default=2)
 parser.add_argument('--num-groups', type=int, default=2)
 
 parser.add_argument('--num-workers', type=int, default=1)
-parser.add_argument('--epoch', type=int, default=20)
+parser.add_argument('--epoch', type=int, default=10)
 parser.add_argument('--batch-size', type=int, default=100)
 parser.add_argument('--test-batch-size', type=int, default=256)
 
@@ -45,7 +45,7 @@ parser.add_argument('--root', type=str, default='/cmlscratch/zche/RegAuc/fairnes
 parser.add_argument('--seed', type=int, default=46)
 
 
-parser.add_argument('--save-csv-path', type=str, default='/cmlscratch/zche/RegAuc/fairness-simulation/results')
+parser.add_argument('--save-csv-path', type=str, default='/cmlscratch/zche/RegAuc/fairness-simulation/results/new')
 parser.add_argument('--save-path', type=str, default='checkpoint')
 parser.add_argument('--save-model', action='store_true', default=False)
 
@@ -195,7 +195,7 @@ def train_model(args, model, loaders):
     t_test_loss, t_test_prec, t_test_unfair_var, t_test_unfair_odd, t_result = eval_loop(args,
                                                                                              epoch,
                                                                                              test_dataloader,
-                                                                                             model)
+                                                                                             model,test=True)
     results.append(t_result)
 
 
