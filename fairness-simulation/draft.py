@@ -13,7 +13,7 @@ import torchvision.models as models
 parser = ArgumentParser()
 
 parser.add_argument('--num-maj', type=int, default=5000)
-parser.add_argument('--per-min', type=float, default=0.1)
+parser.add_argument('--per-min', type=float, default=0.2)
 
 
 #
@@ -37,6 +37,7 @@ parser.add_argument('--fair-type', choices=['dp', 'eql_op_0', 'eql_op_1', 'eql_o
                     default='eql_odd')
 
 parser.add_argument('--image-list-train', type=str, default='train_white_black.csv')
+parser.add_argument('--image-list-val', type=str, default='val_white_black.csv')
 parser.add_argument('--image-list-test', type=str, default='test_white_black.csv')
 
 parser.add_argument('--root', type=str, default='/cmlscratch/zche/RegAuc/fairness-simulation/data/fairface')
@@ -97,10 +98,16 @@ def main(args):
 
     # load data
     mixture_df = gen_data_mixture(args.num_maj, args.per_min, os.path.join(args.root, args.image_list_train),args.seed)
+    val_df = pd.read_csv(os.path.join(args.root,args.image_list_val))
     test_df = pd.read_csv(os.path.join(args.root,args.image_list_test))
 
     train_dataset = data_loader.FairFaceDataset(root=args.root,
                                                 images_file=mixture_df,
+                                                transform=transforms.ToTensor(),
+                                                transform_strong=None)
+
+    val_dataset = data_loader.FairFaceDataset(root=args.root,
+                                                images_file=val_df,
                                                 transform=transforms.ToTensor(),
                                                 transform_strong=None)
 
@@ -111,6 +118,7 @@ def main(args):
 
 
     print('Train dataset size: {}'.format(len(train_dataset)))
+    print('Val dataset size: {}'.format(len(val_dataset)))
     print('Test dataset size: {}'.format(len(test_dataset)))
 
     
@@ -118,12 +126,15 @@ def main(args):
     train_dataloader = DataLoader(dataset=train_dataset, batch_size=args.batch_size,
                                     shuffle=True,
                                     num_workers=args.num_workers)
+    val_dataloader = DataLoader(dataset=val_dataset, batch_size=args.batch_size,
+                                    shuffle=True,
+                                    num_workers=args.num_workers)
     test_dataloader = DataLoader(dataset=test_dataset, batch_size=args.test_batch_size,
                                    shuffle=True,
                                    num_workers=args.num_workers)
 
 
-    loaders = (train_dataloader, test_dataloader)
+    loaders = (train_dataloader, val_dataloader,test_dataloader)
 
     # make model
     model = load_model(args)
@@ -143,7 +154,7 @@ def main(args):
 
 
 def train_model(args, model, loaders):
-    train_dataloader, test_dataloader = loaders
+    train_dataloader, val_dataloader, test_dataloader = loaders
 
 
 
@@ -175,11 +186,18 @@ def train_model(args, model, loaders):
             # test in the target domain
             t_val_loss, t_val_prec, t_val_unfair_var, t_val_unfair_odd, t_result = eval_loop(args,
                                                                                              epoch,
-                                                                                             test_dataloader,
+                                                                                             val_dataloader,
                                                                                              model)
             results.append(t_result)
 
         if scheduler: scheduler.step()
+    
+    t_test_loss, t_test_prec, t_test_unfair_var, t_test_unfair_odd, t_result = eval_loop(args,
+                                                                                             epoch,
+                                                                                             test_dataloader,
+                                                                                             model)
+    results.append(t_result)
+
 
     # save results to csv
     fields = ["name", "epoch", "acc", "acc_A0Y0", "acc_A0Y1", "acc_A1Y0", "acc_A1Y1",
@@ -191,13 +209,13 @@ def train_model(args, model, loaders):
         write.writerow(fields)
         write.writerows(results)
 
-    print('Done!')
-    print('Best (odd) epoch: ', best_epoch_odd)
-    print('Best (odd) target test acc: {acc:.4f}'.format(acc=best_t_acc_odd))
-    print('Best (odd) target test unfairness: {acc:.4f}'.format(acc=best_t_unfair_odd))
-    print('Best (var) epoch: ', best_epoch_var)
-    print('Best (var) target test acc: {acc:.4f}'.format(acc=best_t_acc_var))
-    print('Best (var) target test unfairness: {acc:.4f}'.format(acc=best_t_unfair_var))
+    # print('Done!')
+    # print('Best (odd) epoch: ', best_epoch_odd)
+    # print('Best (odd) target test acc: {acc:.4f}'.format(acc=best_t_acc_odd))
+    # print('Best (odd) target test unfairness: {acc:.4f}'.format(acc=best_t_unfair_odd))
+    # print('Best (var) epoch: ', best_epoch_var)
+    # print('Best (var) target test acc: {acc:.4f}'.format(acc=best_t_acc_var))
+    # print('Best (var) target test unfairness: {acc:.4f}'.format(acc=best_t_unfair_var))
 
     return model
 
@@ -292,7 +310,7 @@ def train_loop(args, epoch, dataloader, model, optimizer):
 
 
 
-def eval_loop(args, epoch, dataloader, model):
+def eval_loop(args, epoch, dataloader, model,test=False):
     # init statistics
     losses = AverageMeter()
     accs = AverageMeter()
@@ -354,11 +372,18 @@ def eval_loop(args, epoch, dataloader, model):
             acc_a1_y1=group_acc[1][1]))
 
         # save result
-        result = [args.save_name, epoch, accs.avg, group_acc[0][0].item(),
-                  group_acc[0][1].item(),
-                  group_acc[1][0].item(), group_acc[1][1].item(), acc_var.item(), acc_dis.item(),
-                  err_op0.item(),
-                  err_op1.item(), err_odd.item()]
+        if test:
+            result = [args.save_name, f"Test {epoch}", accs.avg, group_acc[0][0].item(),
+                    group_acc[0][1].item(),
+                    group_acc[1][0].item(), group_acc[1][1].item(), acc_var.item(), acc_dis.item(),
+                    err_op0.item(),
+                    err_op1.item(), err_odd.item()]
+        else:
+            result = [args.save_name, f"Val {epoch}", accs.avg, group_acc[0][0].item(),
+                    group_acc[0][1].item(),
+                    group_acc[1][0].item(), group_acc[1][1].item(), acc_var.item(), acc_dis.item(),
+                    err_op0.item(),
+                    err_op1.item(), err_odd.item()]
 
     return losses.avg, accs.avg, acc_var, err_odd, result
 
