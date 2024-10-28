@@ -183,7 +183,6 @@ def train_model(args, model, loaders):
 
         # validation
         if epoch % args.val_epoch == args.val_epoch - 1:
-            # test in the target domain
             t_val_loss, t_val_prec, t_val_unfair_var, t_val_unfair_odd, t_result = eval_loop(args,
                                                                                              epoch,
                                                                                              val_dataloader,
@@ -204,7 +203,7 @@ def train_model(args, model, loaders):
                 #         'epoch': epoch
                 #     }
                 #     save_checkpoint(args, "best_odd", sd_info)
-                t_test_loss, t_test_prec, t_test_unfair_var, t_test_unfair_odd, t_test_result = eval_loop(args,
+                _, _, _, _, t_test_result = eval_loop(args,
                                                                                              epoch,
                                                                                              test_dataloader,
                                                                                              model,test=True)
