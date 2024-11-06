@@ -82,8 +82,6 @@ def regauc_sim(lambda_max, beta=False):
     plt.savefig(filename, dpi=500)
     plt.show()
 
-    # print(ra_avgerage_bids/st_average_bids)
-
 
 if __name__ == '__main__':
     lam = 1/2
