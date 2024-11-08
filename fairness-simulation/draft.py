@@ -359,7 +359,7 @@ def eval_loop(args, epoch, dataloader, model,test=False):
 
         # save result
         if test:
-            result = [args.save_name, f"Test {epoch}", accs.avg, group_acc[0][0].item(),
+            result = [args.save_name, f"Test {epoch+1}", accs.avg, group_acc[0][0].item(),
                     group_acc[0][1].item(),
                     group_acc[1][0].item(), group_acc[1][1].item(), acc_var.item(), acc_dis.item(),
                     err_op0.item(),
@@ -379,7 +379,7 @@ def eval_loop(args, epoch, dataloader, model,test=False):
                 acc_dis=acc_dis, max_id_acc=max_id_acc, min_id_acc=min_id_acc,
                 acc_a0_y0=group_acc[0][0], acc_a0_y1=group_acc[0][1], acc_a1_y0=group_acc[1][0],
                 acc_a1_y1=group_acc[1][1]))
-            result = [args.save_name, f"Val {epoch}", accs.avg, group_acc[0][0].item(),
+            result = [args.save_name, f"Val {epoch+1}", accs.avg, group_acc[0][0].item(),
                     group_acc[0][1].item(),
                     group_acc[1][0].item(), group_acc[1][1].item(), acc_var.item(), acc_dis.item(),
                     err_op0.item(),
