@@ -6,7 +6,7 @@ import os
 
 if __name__ == '__main__':
 
-    data_path = 'results'
+    data_path = 'results/new_results_iclr/5000'
     filenames = os.listdir(data_path)
     csv_files = [filename for filename in filenames if filename.endswith(".csv")]
     num_files = len(csv_files)
@@ -15,21 +15,22 @@ if __name__ == '__main__':
 
     for csv_file in csv_files:
         id = float('.' + csv_file.split('.')[1])
-        idx = int((id - 0.05) / 0.049)
+        idx = int((id - 0.1) / 0.099)
         cost_axis[idx] = id
         result = pd.read_csv(os.path.join(data_path, csv_file))
         columns = result.columns
 
-        # get metrics from last train acc epoch
+        # get metrics from best test acc
         metrics[idx, :] = result.iloc[-1, 3:]
-
     # generate dataframe and choose metric
     metrics = pd.DataFrame(metrics, index=cost_axis, columns=columns[3:])
 
+    # print(metrics)
     # safety_metric = metrics['err_op_1']
-    # safety_metric = metrics['err_odd']
+    safety_metric = metrics['err_odd']
     # safety_metric = metrics['acc_dis']
-    safety_metric = metrics['acc_var']
+    # safety_metric = metrics['acc_var']
+    # safety_metric = metrics['acc_A1Y0']
 
     # print(columns[3:])
     # 3 is best
@@ -38,9 +39,9 @@ if __name__ == '__main__':
     # 5 works
 
     # normalize and scale to get correct bounds for M : Safety
-    safety_metric = np.power(safety_metric, -1)
-    safety_metric = safety_metric - np.min(safety_metric)
-    safety_metric /= np.max(safety_metric)
+    # safety_metric = np.power(safety_metric, -1)
+    # safety_metric = safety_metric - np.min(safety_metric)
+    # safety_metric /= np.max(safety_metric)
 
     # safety_metric = safety_metric - np.min(safety_metric)
     # safety_metric /= np.max(safety_metric)
@@ -59,8 +60,8 @@ if __name__ == '__main__':
     plt.xlabel('Safety Level $\epsilon$', fontsize="15", fontweight='bold')
     plt.ylabel('Cost', fontsize="15", fontweight='bold')
     plt.legend(loc='best', fontsize="15")
-    plt.xlim([-0.025, 1.025])
-    # plt.show()
+    # plt.xlim([-0.025, 1.025])
+    plt.show()
 
-    plt.savefig('acc_var.jpg', dpi=500)
+    # plt.savefig('acc_var.jpg', dpi=500)
 

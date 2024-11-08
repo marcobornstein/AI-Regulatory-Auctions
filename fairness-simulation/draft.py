@@ -1,5 +1,4 @@
 import pandas as pd
-import data_loader
 import torch.multiprocessing
 import torch.optim as optim
 from argparse import ArgumentParser
@@ -14,47 +13,28 @@ parser = ArgumentParser()
 
 parser.add_argument('--num-maj', type=int, default=5000)
 parser.add_argument('--per-min', type=float, default=0.2)
-
-
-#
 parser.add_argument('--num-labels', type=int, default=2)
 parser.add_argument('--num-groups', type=int, default=2)
-
 parser.add_argument('--num-workers', type=int, default=1)
 parser.add_argument('--epoch', type=int, default=10)
 parser.add_argument('--batch-size', type=int, default=100)
 parser.add_argument('--test-batch-size', type=int, default=256)
-
-
 parser.add_argument('--model', choices=['vgg16', 'resnet18', "mlp", 'cnn'], default='vgg16')
 parser.add_argument('--lr', type=float, default=0.001)
 parser.add_argument('--weight-decay', type=float, default=5e-4)
 parser.add_argument('--step-lr', type=int, default=100)
 parser.add_argument('--step-lr-gamma', type=float, default=0.1)
 parser.add_argument('--val-epoch', type=int, default=1)
-
 parser.add_argument('--fair-type', choices=['dp', 'eql_op_0', 'eql_op_1', 'eql_odd'],
                     default='eql_odd')
-
 parser.add_argument('--image-list-train', type=str, default='train_white_black.csv')
 parser.add_argument('--image-list-val', type=str, default='val_white_black.csv')
 parser.add_argument('--image-list-test', type=str, default='test_white_black.csv')
-
-parser.add_argument('--root', type=str, default='/cmlscratch/zche/RegAuc/fairness-simulation/data/fairface')
-
-parser.add_argument('--seed', type=int, default=46)
-
-
-parser.add_argument('--save-csv-path', type=str, default='/cmlscratch/zche/RegAuc/fairness-simulation/results/new')
+parser.add_argument('--root', type=str, default='data/fairface')
+parser.add_argument('--seed', type=int, default=1)
+parser.add_argument('--save-csv-path', type=str, default='results')
 parser.add_argument('--save-path', type=str, default='checkpoint')
 parser.add_argument('--save-model', action='store_true', default=False)
-
-
-
-# parser.add_argument('--adv-hidden-dim', type=int, default=128)
-# parser.add_argument('--fair-weight', type=float, default=1.)
-# parser.add_argument('--train-iteration', type=int, default=50, help='Number of iteration per epoch')
-# parser.add_argument('--normalize-loss', action='store_true', default=False)
 
 args = parser.parse_args()
 
@@ -71,12 +51,12 @@ def gen_data_mixture(num_majority_class, pct_minority_class, image_list,seed):
     mixture = pd.concat([sampled_maj, sampled_min], ignore_index=True)
     return mixture
 
+
 def load_model(args):
     if args.model == 'vgg16':
         features = models.vgg16(pretrained=False).features
         model = Face(features, args.num_labels)
     return model
-
 
 
 def main(args):
@@ -94,7 +74,7 @@ def main(args):
     print("Percentage of minority group", args.per_min)
 
 
-    args.save_name = f"{args.num_maj}-{args.per_min}"
+    args.save_name = f"{args.num_maj}-{args.per_min}-{args.seed}"
 
     # load data
     mixture_df = gen_data_mixture(args.num_maj, args.per_min, os.path.join(args.root, args.image_list_train),args.seed)
@@ -143,14 +123,6 @@ def main(args):
     model = train_model(args, model, loaders)
 
     return model
-
-
-
-
-
-
-
-
 
 
 def train_model(args, model, loaders):
@@ -414,8 +386,6 @@ def eval_loop(args, epoch, dataloader, model,test=False):
                     err_op1.item(), err_odd.item()]
 
     return losses.avg, accs.avg, acc_var, err_odd, result
-
-
 
 
 if __name__ == "__main__":
