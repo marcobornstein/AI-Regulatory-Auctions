@@ -98,9 +98,9 @@ def main(args):
 
     # load data
     mixture_df = gen_data_mixture(args.num_maj, args.per_min, os.path.join(args.root, args.image_list_train),args.seed)
-    val_df = pd.read_csv(os.path.join(args.root,args.image_list_val))
+    #val_df = pd.read_csv(os.path.join(args.root,args.image_list_val))
+    val_df = gen_data_mixture(750, args.per_min, os.path.join(args.root, args.image_list_val),args.seed)
     test_df = pd.read_csv(os.path.join(args.root,args.image_list_test))
-
     train_dataset = data_loader.FairFaceDataset(root=args.root,
                                                 images_file=mixture_df,
                                                 transform=transforms.ToTensor(),
@@ -189,12 +189,13 @@ def train_model(args, model, loaders):
                                                                                              model)
             results.append(t_result)
 
-
+            run = False
             if t_val_prec - t_val_unfair_odd >= best_t_acc_fair_odd:
+                run = True
                 best_t_acc_fair_odd = t_val_prec - t_val_unfair_odd
-                best_t_acc_odd = t_val_prec
-                best_t_unfair_odd = t_val_unfair_odd
-                best_epoch_odd = epoch
+                # best_t_acc_odd = t_val_prec
+                # best_t_unfair_odd = t_val_unfair_odd
+                # best_epoch_odd = epoch
                 # if args.save_model:
                 #     sd_info = {
                 #         'model': model.state_dict(),
@@ -203,20 +204,27 @@ def train_model(args, model, loaders):
                 #         'epoch': epoch
                 #     }
                 #     save_checkpoint(args, "best_odd", sd_info)
-                _, _, _, _, t_test_result = eval_loop(args,
-                                                                                             epoch,
-                                                                                             test_dataloader,
-                                                                                             model,test=True)
+            
+                _, _, _, _, t_test_result_acc_fair = eval_loop(args,
+                                                    epoch,
+                                                    test_dataloader,
+                                                    model,test=True)
+            if t_val_prec >= best_t_acc_odd:
+                best_t_acc_odd = t_val_prec
+                if run:
+                    t_test_result_acc = t_test_result_acc_fair
+                else:
+                    _, _, _, _, t_test_result_acc = eval_loop(args,
+                                                    epoch,
+                                                    test_dataloader,
+                                                    model,test=True)
+
 
         if scheduler: scheduler.step()
 
 
-    
-    # t_test_loss, t_test_prec, t_test_unfair_var, t_test_unfair_odd, t_result = eval_loop(args,
-    #                                                                                          best_epoch_odd,
-    #                                                                                          test_dataloader,
-    #                                                                                          model,test=True)
-    results.append(t_test_result)
+    results.append(t_test_result_acc_fair)
+    results.append(t_test_result_acc)
 
 
     # save results to csv
@@ -230,10 +238,10 @@ def train_model(args, model, loaders):
         write.writerows(results)
 
     # print('Done!')
-    print('Best (odd) epoch: ', best_epoch_odd)
-    print('Best (odd) target test acc: {acc:.4f}'.format(acc=best_t_acc_odd))
-    print('Best (odd) target test unfairness: {acc:.4f}'.format(acc=best_t_unfair_odd))
-    print('Best (var) epoch: ', best_epoch_var)
+    # print('Best (odd) epoch: ', best_epoch_odd)
+    # print('Best (odd) target test acc: {acc:.4f}'.format(acc=best_t_acc_odd))
+    # print('Best (odd) target test unfairness: {acc:.4f}'.format(acc=best_t_unfair_odd))
+    # print('Best (var) epoch: ', best_epoch_var)
     # print('Best (var) target test acc: {acc:.4f}'.format(acc=best_t_acc_var))
     # print('Best (var) target test unfairness: {acc:.4f}'.format(acc=best_t_unfair_var))
 
