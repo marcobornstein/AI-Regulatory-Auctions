@@ -79,7 +79,7 @@ def main(args):
     # load data
     mixture_df = gen_data_mixture(args.num_maj, args.per_min, os.path.join(args.root, args.image_list_train),args.seed)
     #val_df = pd.read_csv(os.path.join(args.root,args.image_list_val))
-    val_df = gen_data_mixture(750, args.per_min, os.path.join(args.root, args.image_list_val),args.seed)
+    val_df = gen_data_mixture(700, args.per_min, os.path.join(args.root, args.image_list_val),args.seed)
     test_df = pd.read_csv(os.path.join(args.root,args.image_list_test))
     train_dataset = data_loader.FairFaceDataset(root=args.root,
                                                 images_file=mixture_df,
