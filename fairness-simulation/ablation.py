@@ -6,21 +6,22 @@ import os
 
 if __name__ == '__main__':
 
-    data_path = 'results/'
+    data_path = 'results/5000-first-try'
     filenames = os.listdir(data_path)
     csv_files = [filename for filename in filenames if filename.endswith(".csv")]
-    num_experiments = np.count_nonzero([1 if int(f.split('-')[-1][0]) == 1 else 0 for f in csv_files])
-    num_runs = 1
+    num_experiments = np.count_nonzero([1 if int(f.split('-')[-1].split('.')[0]) == 1 else 0 for f in csv_files])
+    num_runs = 10
     step = 0.05
+    pd.set_option('display.max_columns', None)
 
     num_files = len(csv_files)
-    metrics = np.empty(shape=(num_experiments, 9, num_runs), dtype=float)
+    metrics = np.empty(shape=(num_experiments, 10, num_runs), dtype=float)
     cost_axis = np.empty(shape=(num_experiments,), dtype=float)
 
     for csv_file in csv_files:
 
         csv_info = csv_file.split('-')
-        run = int(csv_info[-1][0]) - 1
+        run = int(csv_info[-1].split('.')[0]) - 1
         minority_class_pct = float(csv_info[-2])
         idx = int(minority_class_pct / (step - 1e-4)) - 1
         cost_axis[idx] = minority_class_pct
@@ -28,31 +29,19 @@ if __name__ == '__main__':
         columns = result.columns
 
         # get metrics from best test acc
-        metrics[idx, :, run] = result.iloc[-1, 3:]
+        metrics[idx, :, run] = result.iloc[-1, 2:]
 
     # generate dataframe and choose metric
     metrics = np.mean(metrics, axis=2)
-    # metrics = metrics[:, :, 0]
-    metrics = pd.DataFrame(metrics, index=cost_axis, columns=columns[3:])
+    # metrics = metrics[:, :, 1]
+    metrics = pd.DataFrame(metrics, index=cost_axis, columns=columns[2:])
 
-    print(metrics.iloc[:, :-2])
-    exit()
-
-    metrics = metrics.iloc[:6, :]
-    cost_axis = cost_axis[:5]
-
-
-    # safety_metric = metrics['err_op_1']
-    safety_metric = metrics['err_odd']
+    # select safety metric to use
+    safety_metric = metrics['acc']
+    # safety_metric = metrics['err_odd']
     # safety_metric = metrics['acc_dis']
     # safety_metric = metrics['acc_var']
     # safety_metric = metrics['acc_A1Y0']
-
-    # print(columns[3:])
-    # 3 is best
-    # 7 is good
-    # 8 works
-    # 5 works
 
     # normalize and scale to get correct bounds for M : Safety
     # safety_metric = np.power(safety_metric, -1)
