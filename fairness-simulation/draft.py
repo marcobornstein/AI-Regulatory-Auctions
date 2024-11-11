@@ -16,13 +16,14 @@ parser.add_argument('--num-labels', type=int, default=2)
 parser.add_argument('--num-groups', type=int, default=2)
 parser.add_argument('--num-workers', type=int, default=1)
 parser.add_argument('--epoch', type=int, default=10)
-parser.add_argument('--batch-size', type=int, default=64)
+parser.add_argument('--batch-size', type=int, default=128)
 parser.add_argument('--test-batch-size', type=int, default=256)
 parser.add_argument('--model', choices=['vgg16', 'resnet18', "mlp", 'cnn'], default='vgg16')
 parser.add_argument('--lr', type=float, default=0.001)
 parser.add_argument('--weight-decay', type=float, default=5e-4)
 parser.add_argument('--step-lr', type=int, default=100)
 parser.add_argument('--step-lr-gamma', type=float, default=0.1)
+parser.add_argument('--val-epoch', type=int, default=1)
 parser.add_argument('--fair-type', choices=['dp', 'eql_op_0', 'eql_op_1', 'eql_odd'], default='eql_odd')
 parser.add_argument('--image-list-train', type=str, default='train_white_black.csv')
 parser.add_argument('--image-list-val', type=str, default='val_white_black.csv')
@@ -77,7 +78,7 @@ def main(args):
     mixture_df = gen_data_mixture(args.num_maj, args.per_min, os.path.join(args.root, args.image_list_train), args.seed)
 
     # load validation data with same skew
-    val_df = gen_data_mixture(600, args.per_min, os.path.join(args.root, args.image_list_val), args.seed)
+    val_df = gen_data_mixture(500, args.per_min, os.path.join(args.root, args.image_list_val), args.seed)
     # val_df = pd.read_csv(os.path.join(args.root,args.image_list_val))
 
     # load regular test data
@@ -85,13 +86,13 @@ def main(args):
 
     # create datasets
     train_dataset = data_loader.FairFaceDataset(root=args.root, images_file=mixture_df,
-                                                transform=torch.transforms.ToTensor(), transform_strong=None)
+                                                transform=transforms.ToTensor(), transform_strong=None)
 
     val_dataset = data_loader.FairFaceDataset(root=args.root, images_file=val_df,
-                                              transform=torch.transforms.ToTensor(), transform_strong=None)
+                                              transform=transforms.ToTensor(), transform_strong=None)
 
     test_dataset = data_loader.FairFaceDataset(root=args.root, images_file=test_df,
-                                               transform=torch.transforms.ToTensor(), transform_strong=None)
+                                               transform=transforms.ToTensor(), transform_strong=None)
 
     print('Train dataset size: {}'.format(len(train_dataset)))
     print('Val dataset size: {}'.format(len(val_dataset)))
@@ -121,15 +122,9 @@ def train_model(args, model, loaders):
     train_dataloader, val_dataloader, test_dataloader = loaders
 
     # initialize the loader
-    """
-    optimizer = optim.SGD((list(model.parameters())), lr=args.lr,
-                          momentum=0.9,
-                          weight_decay=args.weight_decay)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.step_lr, gamma=args.step_lr_gamma)
-    """
-
-    optimizer = torch.optim.AdamW(parameters=model.parameters(), lr=args.lr)
-    scheduler = None
+    optimizer = torch.optim.SGD((list(model.parameters())), lr=args.lr, momentum=0.9, weight_decay=args.weight_decay)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=args.step_lr, gamma=args.step_lr_gamma)
+    # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
 
     # statistic
     best_t_acc_fair_odd = 0
