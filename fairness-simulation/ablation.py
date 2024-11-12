@@ -6,11 +6,11 @@ import os
 
 if __name__ == '__main__':
 
-    data_path = 'results/5000-first-try'
+    data_path = 'results/'
     filenames = os.listdir(data_path)
     csv_files = [filename for filename in filenames if filename.endswith(".csv")]
     num_experiments = np.count_nonzero([1 if int(f.split('-')[-1].split('.')[0]) == 1 else 0 for f in csv_files])
-    num_runs = 10
+    num_runs = 3
     step = 0.05
     pd.set_option('display.max_columns', None)
 
@@ -37,8 +37,8 @@ if __name__ == '__main__':
     metrics = pd.DataFrame(metrics, index=cost_axis, columns=columns[2:])
 
     # select safety metric to use
-    safety_metric = metrics['acc']
-    # safety_metric = metrics['err_odd']
+    # safety_metric = metrics['acc']
+    safety_metric = metrics['err_odd']
     # safety_metric = metrics['acc_dis']
     # safety_metric = metrics['acc_var']
     # safety_metric = metrics['acc_A1Y0']
