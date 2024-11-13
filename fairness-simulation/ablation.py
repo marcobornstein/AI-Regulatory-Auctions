@@ -55,6 +55,6 @@ if __name__ == '__main__':
     plt.xlabel('Safety Level $\epsilon$', fontsize="15", fontweight='bold')
     plt.ylabel('Cost', fontsize="15", fontweight='bold')
     plt.legend(loc='best', fontsize="15")
-    plt.show()
     plt.savefig('err_odd_fairness_ablation.jpg', dpi=500)
+    plt.show()
 
