@@ -6,11 +6,11 @@ import os
 
 if __name__ == '__main__':
 
-    data_path = 'results/'
+    data_path = 'results/iclr'
     filenames = os.listdir(data_path)
     csv_files = [filename for filename in filenames if filename.endswith(".csv")]
     num_experiments = np.count_nonzero([1 if int(f.split('-')[-1].split('.')[0]) == 1 else 0 for f in csv_files])
-    num_runs = 3
+    num_runs = 10
     step = 0.05
     pd.set_option('display.max_columns', None)
 
@@ -33,23 +33,13 @@ if __name__ == '__main__':
 
     # generate dataframe and choose metric
     metrics = np.mean(metrics, axis=2)
-    # metrics = metrics[:, :, 1]
     metrics = pd.DataFrame(metrics, index=cost_axis, columns=columns[2:])
-
-    # select safety metric to use
-    # safety_metric = metrics['acc']
     safety_metric = metrics['err_odd']
-    # safety_metric = metrics['acc_dis']
-    # safety_metric = metrics['acc_var']
-    # safety_metric = metrics['acc_A1Y0']
 
     # normalize and scale to get correct bounds for M : Safety
-    # safety_metric = np.power(safety_metric, -1)
-    # safety_metric = safety_metric - np.min(safety_metric)
-    # safety_metric /= np.max(safety_metric)
-
-    # safety_metric = safety_metric - np.min(safety_metric)
-    # safety_metric /= np.max(safety_metric)
+    safety_metric = np.power(safety_metric, -1)
+    safety_metric /= np.max(safety_metric)
+    cost_axis /= np.max(cost_axis)
 
     # best fit line
     z = np.polyfit(safety_metric, cost_axis, 2)
@@ -65,8 +55,6 @@ if __name__ == '__main__':
     plt.xlabel('Safety Level $\epsilon$', fontsize="15", fontweight='bold')
     plt.ylabel('Cost', fontsize="15", fontweight='bold')
     plt.legend(loc='best', fontsize="15")
-    # plt.xlim([-0.025, 1.025])
     plt.show()
-
-    # plt.savefig('acc_var.jpg', dpi=500)
+    plt.savefig('err_odd_fairness_ablation.jpg', dpi=500)
 
