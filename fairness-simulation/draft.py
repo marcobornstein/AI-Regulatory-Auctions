@@ -1,6 +1,5 @@
 import pandas as pd
 import torch.multiprocessing
-import torch.optim as optim
 from argparse import ArgumentParser
 from utils import *
 import random
@@ -17,7 +16,7 @@ parser.add_argument('--num-labels', type=int, default=2)
 parser.add_argument('--num-groups', type=int, default=2)
 parser.add_argument('--num-workers', type=int, default=1)
 parser.add_argument('--epoch', type=int, default=10)
-parser.add_argument('--batch-size', type=int, default=100)
+parser.add_argument('--batch-size', type=int, default=128)
 parser.add_argument('--test-batch-size', type=int, default=256)
 parser.add_argument('--model', choices=['vgg16', 'resnet18', "mlp", 'cnn'], default='vgg16')
 parser.add_argument('--lr', type=float, default=0.001)
@@ -25,8 +24,7 @@ parser.add_argument('--weight-decay', type=float, default=5e-4)
 parser.add_argument('--step-lr', type=int, default=100)
 parser.add_argument('--step-lr-gamma', type=float, default=0.1)
 parser.add_argument('--val-epoch', type=int, default=1)
-parser.add_argument('--fair-type', choices=['dp', 'eql_op_0', 'eql_op_1', 'eql_odd'],
-                    default='eql_odd')
+parser.add_argument('--fair-type', choices=['dp', 'eql_op_0', 'eql_op_1', 'eql_odd'], default='eql_odd')
 parser.add_argument('--image-list-train', type=str, default='train_white_black.csv')
 parser.add_argument('--image-list-val', type=str, default='val_white_black.csv')
 parser.add_argument('--image-list-test', type=str, default='test_white_black.csv')
@@ -35,10 +33,10 @@ parser.add_argument('--seed', type=int, default=1)
 parser.add_argument('--save-csv-path', type=str, default='results')
 parser.add_argument('--save-path', type=str, default='checkpoint')
 parser.add_argument('--save-model', action='store_true', default=False)
-
 args = parser.parse_args()
 
-def gen_data_mixture(num_majority_class, pct_minority_class, image_list,seed):
+
+def gen_data_mixture(num_majority_class, pct_minority_class, image_list, seed):
     df = pd.read_csv(image_list)
     pct_majority_class = 1-pct_minority_class
     total = num_majority_class // pct_majority_class
@@ -76,32 +74,29 @@ def main(args):
 
     args.save_name = f"{args.num_maj}-{args.per_min}-{args.seed}"
 
-    # load data
-    mixture_df = gen_data_mixture(args.num_maj, args.per_min, os.path.join(args.root, args.image_list_train),args.seed)
-    #val_df = pd.read_csv(os.path.join(args.root,args.image_list_val))
-    val_df = gen_data_mixture(750, args.per_min, os.path.join(args.root, args.image_list_val),args.seed)
-    test_df = pd.read_csv(os.path.join(args.root,args.image_list_test))
-    train_dataset = data_loader.FairFaceDataset(root=args.root,
-                                                images_file=mixture_df,
-                                                transform=transforms.ToTensor(),
-                                                transform_strong=None)
+    # load training data with given skew
+    mixture_df = gen_data_mixture(args.num_maj, args.per_min, os.path.join(args.root, args.image_list_train), args.seed)
 
-    val_dataset = data_loader.FairFaceDataset(root=args.root,
-                                                images_file=val_df,
-                                                transform=transforms.ToTensor(),
-                                                transform_strong=None)
+    # load validation data with same skew
+    val_df = gen_data_mixture(500, args.per_min, os.path.join(args.root, args.image_list_val), args.seed)
+    # val_df = pd.read_csv(os.path.join(args.root,args.image_list_val))
 
-    test_dataset = data_loader.FairFaceDataset(root=args.root,
-                                                images_file=test_df,
-                                                transform=transforms.ToTensor(),
-                                                transform_strong=None)
+    # load regular test data
+    test_df = pd.read_csv(os.path.join(args.root, args.image_list_test))
 
+    # create datasets
+    train_dataset = data_loader.FairFaceDataset(root=args.root, images_file=mixture_df,
+                                                transform=transforms.ToTensor(), transform_strong=None)
+
+    val_dataset = data_loader.FairFaceDataset(root=args.root, images_file=val_df,
+                                              transform=transforms.ToTensor(), transform_strong=None)
+
+    test_dataset = data_loader.FairFaceDataset(root=args.root, images_file=test_df,
+                                               transform=transforms.ToTensor(), transform_strong=None)
 
     print('Train dataset size: {}'.format(len(train_dataset)))
     print('Val dataset size: {}'.format(len(val_dataset)))
     print('Test dataset size: {}'.format(len(test_dataset)))
-
-    
 
     train_dataloader = DataLoader(dataset=train_dataset, batch_size=args.batch_size,
                                     shuffle=True,
@@ -113,28 +108,23 @@ def main(args):
                                    shuffle=True,
                                    num_workers=args.num_workers)
 
-
-    loaders = (train_dataloader, val_dataloader,test_dataloader)
+    loaders = (train_dataloader, val_dataloader, test_dataloader)
 
     # make model
     model = load_model(args)
-    print(model)
     model.to(args.device)
-    model = train_model(args, model, loaders)
-
-    return model
+    return train_model(args, model, loaders)
 
 
 def train_model(args, model, loaders):
+
+    # unpack datasets
     train_dataloader, val_dataloader, test_dataloader = loaders
 
-
-
-    optimizer = optim.SGD((list(model.parameters()) ), lr=args.lr,
-                          momentum=0.9,
-                          weight_decay=args.weight_decay)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=args.step_lr,
-                                          gamma=args.step_lr_gamma)
+    # initialize the loader
+    optimizer = torch.optim.SGD((list(model.parameters())), lr=args.lr, momentum=0.9, weight_decay=args.weight_decay)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=args.step_lr, gamma=args.step_lr_gamma)
+    # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
 
     # statistic
     best_t_acc_fair_odd = 0
@@ -148,10 +138,9 @@ def train_model(args, model, loaders):
     results = []
 
     for epoch in range(args.epoch):
+
         # train
-        train_loss, train_prec, train_unfair = train_loop(args, epoch, train_dataloader,
-                                                                model,
-                                                                optimizer)
+        _, _, _ = train_loop(args, epoch, train_dataloader, model, optimizer)
 
         # validation
         if epoch % args.val_epoch == args.val_epoch - 1:
@@ -177,45 +166,29 @@ def train_model(args, model, loaders):
                 #     }
                 #     save_checkpoint(args, "best_odd", sd_info)
             
-                _, _, _, _, t_test_result_acc_fair = eval_loop(args,
-                                                    epoch,
-                                                    test_dataloader,
-                                                    model,test=True)
+                _, _, _, _, t_test_result_acc_fair = eval_loop(args, epoch, test_dataloader, model, test=True)
+
             if t_val_prec >= best_t_acc_odd:
                 best_t_acc_odd = t_val_prec
                 if run:
                     t_test_result_acc = t_test_result_acc_fair
                 else:
-                    _, _, _, _, t_test_result_acc = eval_loop(args,
-                                                    epoch,
-                                                    test_dataloader,
-                                                    model,test=True)
+                    _, _, _, _, t_test_result_acc = eval_loop(args, epoch, test_dataloader, model,test=True)
 
 
         if scheduler: scheduler.step()
 
-
     results.append(t_test_result_acc_fair)
     results.append(t_test_result_acc)
 
-
     # save results to csv
-    fields = ["name", "epoch", "acc", "acc_A0Y0", "acc_A0Y1", "acc_A1Y0", "acc_A1Y1",
-              "acc_var", "acc_dis",
+    fields = ["name", "epoch", "acc", "acc_A0Y0", "acc_A0Y1", "acc_A1Y0", "acc_A1Y1", "acc_var", "acc_dis",
               "err_op_0", "err_op_1", "err_odd"]
 
     with open(os.path.join(args.save_csv_path, args.save_name) + '.csv', 'w') as f:
         write = csv.writer(f)
         write.writerow(fields)
         write.writerows(results)
-
-    # print('Done!')
-    # print('Best (odd) epoch: ', best_epoch_odd)
-    # print('Best (odd) target test acc: {acc:.4f}'.format(acc=best_t_acc_odd))
-    # print('Best (odd) target test unfairness: {acc:.4f}'.format(acc=best_t_unfair_odd))
-    # print('Best (var) epoch: ', best_epoch_var)
-    # print('Best (var) target test acc: {acc:.4f}'.format(acc=best_t_acc_var))
-    # print('Best (var) target test unfairness: {acc:.4f}'.format(acc=best_t_unfair_var))
 
     return model
 
@@ -308,8 +281,6 @@ def train_loop(args, epoch, dataloader, model, optimizer):
     return cls_losses.avg, accs.avg, err_odd
 
 
-
-
 def eval_loop(args, epoch, dataloader, model,test=False):
     # init statistics
     losses = AverageMeter()
@@ -321,7 +292,7 @@ def eval_loop(args, epoch, dataloader, model,test=False):
     model.eval()
 
     # training criterion
-    loss_fn = nn.CrossEntropyLoss()
+    loss_fn = torch.nn.CrossEntropyLoss()
 
     # dataloader
     iterator = enumerate(dataloader)
@@ -332,11 +303,9 @@ def eval_loop(args, epoch, dataloader, model,test=False):
             inputs = inputs.to(args.device)
             labels = sample_batch['label']['gender'].to(args.device)
             groups = sample_batch['label']['race'].to(args.device)
-            
 
             # forward
             outputs, features = model(inputs)
-
             loss = loss_fn(outputs, labels)
             losses.update(loss.item(), inputs.size(0))
 
