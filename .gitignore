@@ -1,2 +1,7 @@
 *pycache*
 *.jpg*
+.python-version
+test.py
+.idea
+.DS_Store
+fairness-simulation/data/fairface/fairface-img-margin025-trainval.zip
