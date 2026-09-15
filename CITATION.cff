@@ -1,0 +1,53 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper below."
+title: "Advancing Regulation in Artificial Intelligence: An Auction-Based Approach"
+type: software
+license: MIT
+repository-code: "https://github.com/marcobornstein/AI-Regulatory-Auctions"
+keywords:
+  - AI regulation
+  - auction design
+  - mechanism design
+  - Nash equilibrium
+  - AI safety
+  - algorithmic fairness
+authors: &authors
+  - family-names: Bornstein
+    given-names: Marco
+    affiliation: University of Maryland, College Park
+  - family-names: Che
+    given-names: Zora
+    affiliation: SAP Labs, LLC
+  - family-names: Julapalli
+    given-names: Suhas
+    affiliation: SAP Labs, LLC
+  - family-names: Mohamed
+    given-names: Abdirisak
+    affiliation: SAP Labs, LLC
+  - family-names: Bedi
+    given-names: Amrit Singh
+    affiliation: University of Central Florida
+  - family-names: Huang
+    given-names: Furong
+    affiliation: University of Maryland, College Park
+identifiers:
+  - type: doi
+    value: 10.1145/3805689.3812397
+    description: FAccT '26 paper
+  - type: url
+    value: "https://arxiv.org/abs/2410.01871"
+    description: arXiv preprint
+preferred-citation:
+  type: conference-paper
+  title: "Advancing Regulation in Artificial Intelligence: An Auction-Based Approach"
+  authors: *authors
+  collection-title: "Proceedings of the 2026 ACM Conference on Fairness, Accountability, and Transparency"
+  conference:
+    name: "FAccT '26"
+    city: "Montréal"
+    country: CA
+  publisher:
+    name: Association for Computing Machinery
+  year: 2026
+  doi: 10.1145/3805689.3812397
+  url: "https://doi.org/10.1145/3805689.3812397"
