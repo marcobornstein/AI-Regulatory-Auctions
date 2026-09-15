@@ -20,7 +20,9 @@ compliant model of each pair a premium reward on top of deployment.
 
 In the Nash equilibrium (Theorem 5), each agent bids above the threshold:
 
-$$\hat b_i^* \;=\; p_\epsilon \;+\; v_i^p\,F(v_i^p) \;-\; \int_0^{v_i^p} F(z)\,dz \;>\; p_\epsilon,$$
+```math
+\hat b_i^* \;=\; p_\epsilon \;+\; v_i^p\,F(v_i^p) \;-\; \int_0^{v_i^p} F(z)\,dz \;>\; p_\epsilon
+```
 
 Here $v_i^p$ is the agent's value for the premium reward and $F$ is its distribution across
 participating agents. Compared with Reserve Thresholding, a minimum-standard baseline, Circa
@@ -92,7 +94,7 @@ participation_rates(0.5, uniform)                           # (Circa, Reserve Th
 
 The model has these ingredients. Agent $i$ has total value $V_i$, split into a premium value
 $v_i^p = \lambda_i V_i$ and a deployment value $v_i^d = (1-\lambda_i)V_i$, with
-$\lambda_i \sim U(0, 1/2)$. Agents with $V_i < p_\epsilon$ cannot afford to comply, so $F$ is the
+$\lambda_i \sim U(0, 1/2)$. Agents with $V_i \lt p_\epsilon$ cannot afford to comply, so $F$ is the
 premium distribution over agents with $V_i \ge p_\epsilon$. To study another value distribution,
 subclass `circa.distributions.ValueDistribution` and supply its closed-form `pdf`, `cdf`, and
 `cdf_integral`. Run `pytest` to check a new subclass against numerical integration and simulation.
