@@ -117,6 +117,7 @@ test confirms that the table in `fairness/README.md` matches the saved training 
   booktitle = {Proceedings of the 2026 ACM Conference on Fairness, Accountability, and Transparency},
   series    = {FAccT '26},
   year      = {2026},
+  pages     = {467--496},
   publisher = {Association for Computing Machinery},
   doi       = {10.1145/3805689.3812397},
   url       = {https://doi.org/10.1145/3805689.3812397}
