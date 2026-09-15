@@ -1,7 +1,17 @@
-*pycache*
-*.jpg*
-.python-version
-test.py
-.idea
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Editors and OS
+.idea/
+.vscode/
 .DS_Store
-fairness-simulation/data/fairface/fairface-img-margin025-trainval.zip
+.python-version
+
+# FairFace images and training artifacts (see fairness/README.md)
+fairness/data/fairface/*.zip
+fairness/data/fairface/train/
+fairness/data/fairface/val/
+fairness/checkpoint/
