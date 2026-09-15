@@ -32,6 +32,9 @@ authors: &authors
     affiliation: University of Maryland, College Park
 identifiers:
   - type: doi
+    value: 10.5281/zenodo.22771774
+    description: Code archive on Zenodo (all versions)
+  - type: doi
     value: 10.1145/3805689.3812397
     description: FAccT '26 paper
   - type: url

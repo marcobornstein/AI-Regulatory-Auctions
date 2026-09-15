@@ -2,6 +2,7 @@
 
 [![FAccT '26](https://img.shields.io/badge/FAccT'26-10.1145%2F3805689.3812397-blue)](https://doi.org/10.1145/3805689.3812397)
 [![arXiv](https://img.shields.io/badge/arXiv-2410.01871-b31b1b.svg)](https://arxiv.org/abs/2410.01871)
+[![Code DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22771774.svg)](https://doi.org/10.5281/zenodo.22771774)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **Marco Bornstein, Zora Che, Suhas Julapalli, Abdirisak Mohamed, Amrit Singh Bedi, Furong Huang**
@@ -125,6 +126,10 @@ test confirms that the table in `fairness/README.md` matches the saved training 
   url       = {https://doi.org/10.1145/3805689.3812397}
 }
 ```
+
+To cite the code itself, use its Zenodo DOI:
+[10.5281/zenodo.22771774](https://doi.org/10.5281/zenodo.22771774). This DOI always resolves
+to the latest release; each release also has its own version DOI, listed on the Zenodo page.
 
 ## License
 
